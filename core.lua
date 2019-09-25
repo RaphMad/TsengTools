@@ -17,7 +17,7 @@ end
 local function ProcessCombatLogEvent()
   local _, type, _, sourceGuid, _, _, _, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
     if type == "SPELL_INTERRUPT" and (sourceGuid == playerGuid or sourceGuid == petGuid) then
-      -- workaround for bug where spellId is 0
+      -- workaround when spellId is 0 (in Classic WoW spellId return values were removed on purpose)
       local message = spellId ~= 0 and
         format("Kicked |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", spellId, spellName) or
         format("Kicked \"%s\"!", spellName)
