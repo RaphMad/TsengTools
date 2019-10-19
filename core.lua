@@ -13,10 +13,10 @@ local function StoreGuids()
   petGuid = UnitGUID("pet")
 end
 
--- announce successful interrupts
+-- announce successful interrupts when in a group
 local function ProcessCombatLogEvent()
   local _, type, _, sourceGuid, _, _, _, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
-    if type == "SPELL_INTERRUPT" and (sourceGuid == playerGuid or sourceGuid == petGuid) then
+    if IsInGroup() and (type == "SPELL_INTERRUPT") and (sourceGuid == playerGuid or sourceGuid == petGuid) then
       -- workaround when spellId is 0 (in Classic WoW spellId return values were removed on purpose)
       local message = spellId ~= 0 and
         format("Kicked |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", spellId, spellName) or
