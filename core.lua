@@ -19,8 +19,8 @@ local function ProcessCombatLogEvent()
     if IsInGroup() and (type == "SPELL_INTERRUPT") and (sourceGuid == playerGuid or sourceGuid == petGuid) then
       -- workaround when spellId is 0 (in Classic WoW spellId return values were removed on purpose)
       local message = spellId ~= 0 and
-        format("Kicked |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", spellId, spellName) or
-        format("Kicked \"%s\"!", spellName)
+        format("Interrupted |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", spellId, spellName) or
+        format("Interrupted \"%s\"!", spellName)
 
         SendChatMessage(message)
    end
