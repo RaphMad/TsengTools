@@ -13,6 +13,12 @@ local function StoreGuids()
   petGuid = UnitGUID("pet")
 end
 
+-- center main menu bar
+local function FixMainMenuBarPosition()
+  MainMenuBar:ClearAllPoints()
+  MainMenuBar:SetPoint("BOTTOM", "UIParent", "BOTTOM")
+end
+
 -- announce successful interrupts when in a group
 local function ProcessCombatLogEvent()
   local _, type, _, sourceGuid, _, _, _, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
@@ -51,7 +57,7 @@ end
 
 -- now that everything is defined, register for events
 local eventHandlers = {
-  PLAYER_LOGIN = StoreGuids,
+  PLAYER_LOGIN = function() StoreGuids(); FixMainMenuBarPosition() end,
   COMBAT_LOG_EVENT_UNFILTERED = ProcessCombatLogEvent,
   CHAT_MSG_SYSTEM = CheckForLogout
 }
