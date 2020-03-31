@@ -57,7 +57,8 @@ end
 
 -- now that everything is defined, register for events
 local eventHandlers = {
-  PLAYER_LOGIN = function() StoreGuids(); FixMainMenuBarPosition() end,
+  PLAYER_LOGIN = StoreGuids,
+  PLAYER_ENTERING_WORLD = FixMainMenuBarPosition,
   COMBAT_LOG_EVENT_UNFILTERED = ProcessCombatLogEvent,
   CHAT_MSG_SYSTEM = CheckForLogout
 }
