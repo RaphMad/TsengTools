@@ -1,7 +1,7 @@
-## Interface: 11303
+## Interface: 11305
 ## Title: TsengTools
 ## Notes: Contains some useful utilities.
 ## Author: Tseng
-## Version: 1
+## Version: 2
 
 core.lua
