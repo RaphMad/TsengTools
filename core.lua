@@ -67,14 +67,14 @@ for event in pairs(eventHandlers) do frame:RegisterEvent(event) end
 frame:SetScript("OnEvent", function (_, event, ...) eventHandlers[event](...) end)
 
 -- always sort player last in group frames
-LoadAddOn("Blizzard_CompactRaidFrames")
+-- LoadAddOn("Blizzard_CompactRaidFrames")
 
-CRFSort_Group = function(t1, t2)
-    if UnitIsUnit(t1, "player") then
-        return true
-    elseif UnitIsUnit(t2, "player") then
-        return false
-    else return t1 < t2 end
-end
+-- CRFSort_Group = function(t1, t2)
+--    if UnitIsUnit(t1, "player") then
+--        return true
+--    elseif UnitIsUnit(t2, "player") then
+--        return false
+--    else return t1 < t2 end
+-- end
 
-CompactRaidFrameContainer.flowSortFunc = CRFSort_Group
+--CompactRaidFrameContainer.flowSortFunc = CRFSort_Group
