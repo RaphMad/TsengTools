@@ -13,23 +13,28 @@ local function StoreGuids()
   petGuid = UnitGUID("pet")
 end
 
--- center main menu bar
-local function FixMainMenuBarPosition()
-  MainMenuBar:ClearAllPoints()
-  MainMenuBar:SetPoint("BOTTOM", "UIParent", "BOTTOM")
+local function HandleLoadingScreen()
+  if IsInInstance() and not frame:IsEventRegistered("COMBAT_LOG_EVENT_UNFILTERED") then
+    frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+  elseif frame:IsEventRegistered("COMBAT_LOG_EVENT_UNFILTERED") then
+    frame:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+  end
 end
 
 -- announce successful interrupts when in a group
 local function ProcessCombatLogEvent()
   local _, type, _, sourceGuid, _, _, _, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
-    if IsInGroup() and (type == "SPELL_INTERRUPT") and (sourceGuid == playerGuid or sourceGuid == petGuid) then
-      -- workaround when spellId is 0 (in Classic WoW spellId return values were removed on purpose)
-      local message = spellId ~= 0 and
-        format("Interrupted |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", spellId, spellName) or
-        format("Interrupted \"%s\"!", spellName)
+  local interruptedBySelf = sourceGuid == playerGuid
+  local interruptedByPet = petGuid and (sourceGuid == petGuid)
 
-        SendChatMessage(message)
-   end
+  if (type == "SPELL_INTERRUPT") and (sinterruptedBySelf or interruptedByPet) and IsInGroup() then
+    -- workaround when spellId is 0 (in Classic WoW spellId return values were removed on purpose)
+    local message = spellId ~= 0 and
+      format("Interrupted |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", spellId, spellName) or
+      format("Interrupted \"%s\"!", spellName)
+
+    SendChatMessage(message)
+  end
 end
 
 local function EnableSoundFor(seconds)
@@ -58,23 +63,15 @@ end
 -- now that everything is defined, register for events
 local eventHandlers = {
   PLAYER_LOGIN = StoreGuids,
-  PLAYER_ENTERING_WORLD = FixMainMenuBarPosition,
+  PLAYER_ENTERING_WORLD = HandleLoadingScreen,
+  CHAT_MSG_SYSTEM = CheckForLogout,
   COMBAT_LOG_EVENT_UNFILTERED = ProcessCombatLogEvent,
-  CHAT_MSG_SYSTEM = CheckForLogout
 }
 
-for event in pairs(eventHandlers) do frame:RegisterEvent(event) end
+for event in pairs(eventHandlers) do
+  -- COMBAT_LOG_EVENT_UNFILTERED will be subscribed dynamically
+  if event ~= COMBAT_LOG_EVENT_UNFILTERED then
+    frame:RegisterEvent(event)
+  end
+end
 frame:SetScript("OnEvent", function (_, event, ...) eventHandlers[event](...) end)
-
--- always sort player last in group frames
--- LoadAddOn("Blizzard_CompactRaidFrames")
-
--- CRFSort_Group = function(t1, t2)
---    if UnitIsUnit(t1, "player") then
---        return true
---    elseif UnitIsUnit(t2, "player") then
---        return false
---    else return t1 < t2 end
--- end
-
---CompactRaidFrameContainer.flowSortFunc = CRFSort_Group
