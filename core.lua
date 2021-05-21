@@ -14,9 +14,9 @@ local function StoreGuids()
 end
 
 local function HandleLoadingScreen()
-  if IsInInstance() and not frame:IsEventRegistered("COMBAT_LOG_EVENT_UNFILTERED") then
+  if IsInInstance() then
     frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-  elseif frame:IsEventRegistered("COMBAT_LOG_EVENT_UNFILTERED") then
+  else
     frame:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
   end
 end
@@ -27,7 +27,7 @@ local function ProcessCombatLogEvent()
   local interruptedBySelf = sourceGuid == playerGuid
   local interruptedByPet = petGuid and (sourceGuid == petGuid)
 
-  if (type == "SPELL_INTERRUPT") and (sinterruptedBySelf or interruptedByPet) and IsInGroup() then
+  if (type == "SPELL_INTERRUPT") and (interruptedBySelf or interruptedByPet) and IsInGroup() then
     -- workaround when spellId is 0 (in Classic WoW spellId return values were removed on purpose)
     local message = spellId ~= 0 and
       format("Interrupted |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", spellId, spellName) or
