@@ -3,14 +3,18 @@ local frame = CreateFrame("Frame")
 
 -- this avoids lookups in the '_G' table, improves performance for functions that are used in hot code paths
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
+local GetBattlefieldStatus = GetBattlefieldStatus
+local IsInGroup = IsInGroup
+local SendChatMessage = SendChatMessage
 
 -- forward declarations
-local playerGuid, petGuid
+local playerGuid, petGuid, maxBattleFieldId
 
--- store player and pet guids once on login
-local function StoreGuids()
+-- store values once on login
+local function StoreStaticLoginValues()
   playerGuid = UnitGUID("player")
   petGuid = UnitGUID("pet")
+  maxBattleFieldId = GetMaxBattlefieldID()
 end
 
 local function HandleLoadingScreen()
@@ -24,14 +28,23 @@ end
 -- announce successful interrupts when in a group
 local function ProcessCombatLogEvent()
   local _, type, _, sourceGuid, _, _, _, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
-  local interruptedBySelf = sourceGuid == playerGuid
-  local interruptedByPet = petGuid and (sourceGuid == petGuid)
+  local doneBySelf = sourceGuid == playerGuid
+  local doneByPet = petGuid and (sourceGuid == petGuid)
+  local isInBG = false
 
-  if (type == "SPELL_INTERRUPT") and (interruptedBySelf or interruptedByPet) and IsInGroup() then
+  for bgId = 1, maxBattleFieldId, 1 do
+    if GetBattlefieldStatus() == "active" then
+      isInBG = true
+    end
+  end
+
+  if (type == "SPELL_INTERRUPT" or type == "SPELL_DISPEL") and (doneBySelf or doneByPet) and IsInGroup() and not isInBG then
+    local prefix = type == "SPELL_INTERRUPT" and "Interrupted" or "Purged"
+
     -- workaround when spellId is 0 (in Classic WoW spellId return values were removed on purpose)
     local message = spellId ~= 0 and
-      format("Interrupted |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", spellId, spellName) or
-      format("Interrupted \"%s\"!", spellName)
+      format("%s |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", prefix, spellId, spellName) or
+      format("%s \"%s\"!", prefix, spellName)
 
     SendChatMessage(message)
   end
@@ -62,7 +75,7 @@ end
 
 -- now that everything is defined, register for events
 local eventHandlers = {
-  PLAYER_LOGIN = StoreGuids,
+  PLAYER_LOGIN = StoreStaticLoginValues,
   PLAYER_ENTERING_WORLD = HandleLoadingScreen,
   CHAT_MSG_SYSTEM = CheckForLogout,
   COMBAT_LOG_EVENT_UNFILTERED = ProcessCombatLogEvent,
