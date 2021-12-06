@@ -3,10 +3,6 @@ local frame = CreateFrame("Frame")
 
 -- this avoids lookups in the '_G' table, improves performance for functions that are used in hot code paths
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
-local GetBattlefieldStatus = GetBattlefieldStatus
-local IsInGroup = IsInGroup
-local SendChatMessage = SendChatMessage
-local UnitIsEnemy = UnitIsEnemy
 
 -- forward declarations
 local playerGuid, petGuid, maxBattleFieldId
@@ -28,26 +24,31 @@ end
 
 -- announce successful interrupts when in a group
 local function ProcessCombatLogEvent()
-  local _, type, _, sourceGuid, _, _, _, _, targetName, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
+  local _, type, _, sourceGuid, _, _, _, _, _, destFlags, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
   local doneBySelf = sourceGuid == playerGuid
   local doneByPet = petGuid and (sourceGuid == petGuid)
-  local isInBG = false
 
-  for bgId = 1, maxBattleFieldId, 1 do
-    if GetBattlefieldStatus() == "active" then
-      isInBG = true
+  if (type == "SPELL_INTERRUPT" or type == "SPELL_DISPEL") and (doneBySelf or doneByPet) then
+    local isEnemy = bit.band(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) > 0
+    local isInBG = false
+
+    for bgId = 1, maxBattleFieldId, 1 do
+      if GetBattlefieldStatus() == "active" then
+        isInBG = true
+        break
+      end
     end
-  end
 
- if (type == "SPELL_INTERRUPT" or type == "SPELL_DISPEL") and (doneBySelf or doneByPet) and IsInGroup() and not isInBG and UnitIsEnemy("player", targetName) then
-    local prefix = type == "SPELL_INTERRUPT" and "Interrupted" or "Purged"
+    if IsInGroup() and not isInBG and isEnemy then
+      local prefix = type == "SPELL_INTERRUPT" and "Interrupted" or "Purged"
 
-    -- workaround when spellId is 0 (in Classic WoW spellId return values were removed on purpose)
-    local message = spellId ~= 0 and
-      format("%s |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", prefix, spellId, spellName) or
-      format("%s \"%s\"!", prefix, spellName)
+      -- workaround when spellId is 0 (in Classic WoW spellId return values were removed on purpose)
+      local message = spellId ~= 0 and
+        format("%s |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", prefix, spellId, spellName) or
+        format("%s \"%s\"!", prefix, spellName)
 
-    SendChatMessage(message)
+      SendChatMessage(message)
+    end
   end
 end
 
