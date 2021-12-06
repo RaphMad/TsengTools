@@ -33,7 +33,7 @@ local function ProcessCombatLogEvent()
     local isInBG = false
 
     for bgId = 1, maxBattleFieldId, 1 do
-      if GetBattlefieldStatus() == "active" then
+      if GetBattlefieldStatus(bgId) == "active" then
         isInBG = true
         break
       end
