@@ -6,12 +6,11 @@ local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
 local UnitGUID= UnitGUID
 
 -- forward declarations
-local playerGuid, maxBattleFieldId
+local playerGuid
 
 -- store values once on login
 local function StoreStaticLoginValues()
   playerGuid = UnitGUID("player")
-  maxBattleFieldId = GetMaxBattlefieldID()
 end
 
 local function HandleLoadingScreen()
@@ -33,7 +32,7 @@ local function ProcessCombatLogEvent()
     local isEnemy = bit.band(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) > 0
     local isInBG = false
 
-    for bgId = 1, maxBattleFieldId do
+    for bgId = 1, GetMaxBattlefieldID() do
       if GetBattlefieldStatus(bgId) == "active" then
         isInBG = true
         break
