@@ -3,14 +3,14 @@ local frame = CreateFrame("Frame")
 
 -- this avoids lookups in the '_G' table, improves performance for functions that are used in hot code paths
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
+local UnitGUID= UnitGUID
 
 -- forward declarations
-local playerGuid, petGuid, maxBattleFieldId
+local playerGuid, maxBattleFieldId
 
 -- store values once on login
 local function StoreStaticLoginValues()
   playerGuid = UnitGUID("player")
-  petGuid = UnitGUID("pet")
   maxBattleFieldId = GetMaxBattlefieldID()
 end
 
@@ -26,13 +26,14 @@ end
 local function ProcessCombatLogEvent()
   local _, type, _, sourceGuid, _, _, _, _, _, destFlags, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
   local doneBySelf = sourceGuid == playerGuid
+  local petGuid = UnitGUID("pet")
   local doneByPet = petGuid and (sourceGuid == petGuid)
 
   if (type == "SPELL_INTERRUPT" or type == "SPELL_DISPEL") and (doneBySelf or doneByPet) then
     local isEnemy = bit.band(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) > 0
     local isInBG = false
 
-    for bgId = 1, maxBattleFieldId, 1 do
+    for bgId = 1, maxBattleFieldId do
       if GetBattlefieldStatus(bgId) == "active" then
         isInBG = true
         break
