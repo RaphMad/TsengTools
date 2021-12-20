@@ -23,7 +23,7 @@ end
 
 -- announce successful interrupts when in a group
 local function ProcessCombatLogEvent()
-  local _, type, _, sourceGuid, _, _, _, _, _, destFlags, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
+  local _, type, _, sourceGuid, _, _, _, _, destName, destFlags, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
   local doneBySelf = sourceGuid == playerGuid
   local petGuid = UnitGUID("pet")
   local doneByPet = petGuid and (sourceGuid == petGuid)
@@ -43,10 +43,10 @@ local function ProcessCombatLogEvent()
     if IsInGroup() and not isInBG and isEnemy then
       local prefix = type == "SPELL_INTERRUPT" and "Interrupted" or "Purged"
 
-      -- workaround when spellId is 0 (in Classic WoW spellId return values were removed on purpose)
+      -- workaround when spellId is 0 (in Classic WoW some spellId return values were removed on purpose)
       local message = spellId ~= 0 and
-        format("%s |cff71d5ff|Hspell:%d:0|h[%s]|h|r!", prefix, spellId, spellName) or
-        format("%s \"%s\"!", prefix, spellName)
+        format("%s |cff71d5ff|Hspell:%d:0|h[%s]|h|r @ %s!", prefix, spellId, spellName, destName) or
+        format("%s \"%s\" @ %s!", prefix, spellName, destName)
 
       SendChatMessage(message)
     end
