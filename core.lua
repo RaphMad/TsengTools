@@ -28,7 +28,8 @@ local function ProcessCombatLogEvent()
   local petGuid = UnitGUID("pet")
   local doneByPet = petGuid and (sourceGuid == petGuid)
 
-  if (type == "SPELL_INTERRUPT" or type == "SPELL_DISPEL") and (doneBySelf or doneByPet) then
+  -- if (type == "SPELL_INTERRUPT" or type == "SPELL_DISPEL") and (doneBySelf or doneByPet) then
+  if (type == "SPELL_INTERRUPT") and (doneBySelf or doneByPet) then
     local isEnemy = bit.band(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) > 0
     local isInBG = false
 
