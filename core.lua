@@ -92,3 +92,38 @@ for event in pairs(eventHandlers) do
   end
 end
 frame:SetScript("OnEvent", function (_, event, ...) eventHandlers[event](...) end)
+
+
+
+-- Global functions
+if TsengTools == nil then TsengTools = {} end
+
+local function IsOnCooldown(itemId)
+  return GetItemCooldown(itemId) > 0
+end
+
+local function HasGCD(spellId)
+  return GetSpellCooldown(spellId) > 0
+end
+
+local function IsCCed()
+  return C_LossOfControl.GetActiveLossOfControlDataCount() > 0
+end
+
+local function CanShiftBack(spellId)
+  for _, data in pairs(GetSpellPowerCost(spellId)) do
+    if UnitPower("player", data.type) < data.cost then
+      return false
+    end
+  end
+
+  return true
+end
+
+function TsengTools.PowerConsume(itemId, spell)
+  local _, _, _, _, _, _, spellId = GetSpellInfo(spell)
+
+  if IsOnCooldown(itemId) or HasGCD(spellId) or IsCCed() or not CanShiftBack(spellId) then
+    SetCVar("autoUnshift", 0)
+  end
+end
