@@ -23,12 +23,26 @@ end
 
 -- announce successful interrupts when in a group
 local function ProcessCombatLogEvent()
-  local _, type, _, sourceGuid, _, _, _, _, destName, destFlags, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
+  local _,
+        type,
+        _,
+        sourceGuid,
+        _,
+        _,
+        _,
+        _,
+        destName,
+        destFlags,
+        _,
+        _,
+        _,
+        _,
+        spellId,
+        spellName = CombatLogGetCurrentEventInfo()
   local doneBySelf = sourceGuid == playerGuid
   local petGuid = UnitGUID("pet")
   local doneByPet = petGuid and (sourceGuid == petGuid)
 
-  -- if (type == "SPELL_INTERRUPT" or type == "SPELL_DISPEL") and (doneBySelf or doneByPet) then
   if (type == "SPELL_INTERRUPT") and (doneBySelf or doneByPet) then
     local isEnemy = bit.band(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) > 0
     local isInBG = false
@@ -42,7 +56,7 @@ local function ProcessCombatLogEvent()
     end
 
     if IsInGroup() and not isInBG and isEnemy then
-      local prefix = type == "SPELL_INTERRUPT" and "Interrupted" or "Purged"
+      local prefix = "Kicked"
 
       -- workaround when spellId is 0 (in Classic WoW some spellId return values were removed on purpose)
       local message = spellId ~= 0 and
@@ -102,7 +116,7 @@ local function IsOnCooldown(itemId)
   return GetItemCooldown(itemId) > 0
 end
 
-local function HasGCD(spellId)
+local function IsOnGCD(spellId)
   return GetSpellCooldown(spellId) > 0
 end
 
@@ -110,7 +124,7 @@ local function IsCCed()
   return C_LossOfControl.GetActiveLossOfControlDataCount() > 0
 end
 
-local function CanShiftBack(spellId)
+local function HasResources(spellId)
   for _, data in pairs(GetSpellPowerCost(spellId)) do
     if UnitPower("player", data.type) < data.cost then
       return false
@@ -123,7 +137,7 @@ end
 function TsengTools.PowerConsume(itemId, spell)
   local _, _, _, _, _, _, spellId = GetSpellInfo(spell)
 
-  if IsOnCooldown(itemId) or HasGCD(spellId) or IsCCed() or not CanShiftBack(spellId) then
+  if IsOnCooldown(itemId) or IsOnGCD(spellId) or IsCCed() or not HasResources(spellId) then
     SetCVar("autoUnshift", 0)
   end
 end
