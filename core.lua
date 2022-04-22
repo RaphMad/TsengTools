@@ -56,7 +56,7 @@ local function ProcessCombatLogEvent()
     end
 
     if IsInGroup() and not isInBG and isEnemy then
-      local prefix = "Kicked"
+      local prefix = "Kick"
 
       -- workaround when spellId is 0 (in Classic WoW some spellId return values were removed on purpose)
       local message = spellId ~= 0 and
